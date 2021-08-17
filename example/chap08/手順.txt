@@ -1,0 +1,184 @@
+■p.249　mysqlコンテナのレイヤーを確認する
+
+docker image rm mysql:5.7
+
+docker pull mysql:5.7
+
+docker history mysql:5.7
+
+■p.253　httpdコンテナの中にindex.htmlファイルをコピーする
+
+docker run -dit --name webcontent -p 8080:80 httpd:2.4
+
+cd /tmp
+nano index.html
+
+docker cp /tmp/index.html webcontent:/usr/local/apache2/htdocs
+
+■p.255　コンテナをイメージ化する
+
+docker commit webcontent mycustomed_httpd
+
+docker image ls
+
+docker image history mycustomed_httpd
+
+■p.256　カスタムなイメージを使う
+
+docker run -dit --name webcontent_new -p 8081:80 mycustomed_httpd
+
+docker ps
+
+docker exec -it webcontent_new /bin/bash
+
+cat /usr/local/apache2/htdocs/index.html
+
+exit
+
+docker stop webcontent webcontent_new
+docker rm webcontent webcontent_new
+docker image rm mycustomed_httpd
+
+■p.259　イメージの作成に必要なファイル群やDockerfileを用意する
+
+mkdir ~/customed_httpd
+cd ~/customed_httpd
+
+nano Dockerfile
+
+■p.260　イメージをビルドする
+
+cd ~/customed_httpd
+
+docker build -t myimage01 .
+
+docker image ls
+
+docker history myimage01
+
+docker history --no-trunc myimage01
+
+■p.262　ビルドしたイメージを利用する
+
+docker run -dit --name webcontent_docker -p 8080:80 myimage01
+
+■p.262　後始末
+
+docker stop webcontent_docker
+docker rm webcontent_docker
+docker image rm myimage01
+
+■p.273　DockerfileとサンプルPHPの準備
+
+mkdir ~/phpimage
+cd ~/phpimage
+
+nano Dockerfile
+nano index.html
+
+■p.275　イメージをビルドする
+
+cd ~/phpimage
+docker build . -t myphpimage
+
+docker image ls
+
+■p.276　コンテナを作成して動作確認する
+
+docker run -dit --name myphp -p 8080:80 myphpimage
+
+docker stop myphp
+docker rm myphp
+
+■p.280　docker saveでファイル化する
+
+docker save -o saved.tar myphpimage
+
+ls -al saved.tar
+
+tar tvf saved.tar
+
+■p.281　docker loadする
+
+docker image rm myphpimage
+
+docker image ls
+
+docker load -i saved.tar
+
+docker image ls
+
+docker run -dit --name myphp02 -p 8080:80 myphpimage
+
+docker stop myphp02
+docker rm myphp02
+
+■p.283　コラム　export/importによるファイル化
+
+docker run -dit --name myphp02 -p 8080:80 myphpimage
+
+docker export -o exported.tar myphp02
+
+tar tvf exported.tar
+
+docker import exported.tar tmp_httpd
+
+docker run -dit --name myphp03 -p 8080:80 tmp_httpd
+
+
+■p.290　8-6-3　Dockerイメージ名を調整する
+
+docker tag myexample ★自分のDockerID★/myexample
+
+■p.290　Dockerイメージをリポジトリに登録する
+
+docker login
+
+docker push ★自分のDockerID★/myexample
+
+■p.294　8-6-5　リポジトリに登録したイメージを使う
+
+docker pull ★自分のDockerID★/myexample
+
+docker logout
+
+docker pull ★自分のDockerID★/myexample
+
+docker login
+docker pull ★自分のDockerID★/myexample
+
+■p.310　awsコマンドをインストールする
+
+sudo apt install -y unzip
+
+（うまくいかない場合）
+sudo apt --fix-broken install -y
+
+curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+
+unzip awscliv2.zip
+
+sudo ./aws/install
+
+aws --version
+
+rm -rf aws awscliv2.zip
+
+■p.312　awsコマンドに認証情報を設定する
+
+aws configure
+
+■p.313　動作確認する
+
+aws ecr get-login-password
+
+■p.314　プライベートなリポジトリに登録する
+
+※環境によって異なるため、図表8-45（p.309）でコピペしたコマンドを入力してください。
+
+（まだビルドしていない場合）
+cd ~/phpimage
+docker build -t myexample_ecr .
+
+
+

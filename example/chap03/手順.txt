@@ -1,0 +1,35 @@
+■p.67　3-3　Dockerコンテナを起動する
+
+・起動
+docker run -dit --name my-apache-app -p 8080:80 -v "$PWD":/usr/local/apache2/htdocs/ httpd:2.4
+
+・確認
+docker ps
+
+■p.71　3-4 index.htmlを作る
+・nanoでの編集
+nano index.html
+
+■p.74　3-5 コンテナの停止と再開
+・コンテナの停止
+docker stop my-apache-app
+
+・コンテナの再開
+docker start my-apache-app
+
+■p.76　3-6 ログの確認
+・ログの確認
+docker logs my-apache-app
+
+■p.76　3-7 コンテナの破棄
+・コンテナの破棄と破棄後の確認
+docker stop my-apache-app
+docker rm my-apache-app
+docker ps -a
+
+■p.77　3-8 イメージの破棄
+・イメージの確認
+docker image ls
+
+・イメージの破棄
+docker image rm httpd:2.4

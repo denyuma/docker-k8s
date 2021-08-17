@@ -1,0 +1,66 @@
+■p.97　4-3　デタッチとアタッチ
+■p.97　-ditオプションを指定せずに実行する
+
+docker run --name my-apache-app -p 8080:80 -v "$PWD":/usr/local/apache2/htdocs/ httpd:2.4
+
+docker ps -a
+
+docker rm my-apache-app
+
+■p.101　デタッチとアタッチの切り替えを試す
+
+docker run -it --name my-apache-app -p 8080:80 -v "$PWD":/usr/local/apache2/htdocs/ httpd:2.4
+
+docker ps -a
+
+docker attach my-apache-app
+
+docker ps -a
+
+docker rm my-apache-app
+
+
+■p.105　停止中のコンテナでシェルを実行する
+
+docker run --name my-apache-app -it httpd:2.4 /bin/bash
+
+ls
+
+docker ps
+
+docker attach my-apache-app
+
+exit
+
+docker ps -a
+
+docker rm my-apache-app
+
+■p.107　実行中のコンテナでシェルを実行する
+
+docker run --name my-apache-app -dit -p 8080:80 -v "$PWD":/usr/local/apache2/htdocs/ httpd:2.4
+
+docker ps
+
+docker exec -it my-apache-app /bin/bash
+
+exit
+
+docker ps
+
+docker stop my-apache-app
+
+docker rm my-apache-app
+
+■p.110　Go言語をコンパイルする
+
+docker run --rm -v "$PWD":/usr/src/myapp -w /usr/src/myapp golang:1.13 go build -v
+
+ls
+
+./myapp
+
+docker ps -a
+
+
+

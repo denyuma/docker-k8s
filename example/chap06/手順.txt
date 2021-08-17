@@ -1,0 +1,130 @@
+■p.170　2つのコンテナを起動する
+
+docker run -dit --name web01 -p 8080:80 httpd:2.4
+
+docker run -dit --name web02 -p 8081:80 httpd:2.4
+
+■p.170　コンテナのIPアドレスを確認する
+
+docker container inspect web01
+
+docker container inspect --format="{{.NetworkSettings.IPAddress}}" web01
+
+docker container inspect --format="{{.NetworkSettings.IPAddress}}" web02
+
+
+■p.172　コラム　フォーマット書式
+
+docker inspect --format='{{range $p, $conf := .NetworkSettings.Ports}} {{$p}} -> {{(index $conf 0).HostPort}} {{end}}' web01
+
+■p.174　ネットワークに接続されているコンテナのIPアドレス一覧を参照する
+
+docker network inspect bridge
+
+docker network inspect --format='{{range $host, $conf := .Containers}}{{$conf.Name}}->{{$conf.IPv4Address}}{{"\n"}}{{end}}' bridge
+
+
+■p.176　6-2-2　bridgeネットワークの正体
+
+sudo iptables --list -t nat -n
+
+
+■p.179　コンテナ同士の疎通を確認する
+
+docker run --rm -it ubuntu /bin/bash
+
+apt update
+apt -y upgrade
+apt install -y iproute2 iputils-ping curl
+
+ip address
+
+ping -c 4 172.17.0.2
+ping -c 4 172.17.0.3
+
+curl http://172.17.0.2/
+curl http://172.17.0.3/
+
+ping -c 4 web01
+curl http://web01/
+
+exit
+
+■p.184　　--linkオプションで指定する方法
+
+docker run --rm -it --link web01:web01 --link web02:web02 ubuntu /bin/bash
+
+apt update
+apt -y upgrade
+apt install -y iproute2 iputils-ping curl
+
+ping -c 4 web01
+
+cat /etc/hosts
+
+
+■p.187　Dockerネットワークを作成する
+
+docker network create mydockernet
+
+docker network ls
+
+docker network inspect mydockernet
+
+
+■p.189　コラム　明示的にIPアドレス範囲を指定したいとき
+
+docker network create examplenet --subnet 10.0.0.0/16 --gateway 10.0.0.1
+
+docker network inspect examplenet
+
+docker network rm examplenet
+
+■p.190　接続先のネットワークを指定してコンテナを起動する
+
+docker stop web01 web02
+docker rm web01 web02
+
+docker run -dit --name web01 -p 8080:80 --net mydockernet httpd:2.4
+docker run -dit --name web02 -p 8081:80 --net mydockernet httpd:2.4
+
+docker network inspect mydockernet
+
+
+■p.192　コラム　コンテナを破棄せずに接続し直す
+
+docker network disconnect bridge web01
+
+docker network connect mydockernet web01
+
+docker inspect web01
+
+■p.193　名前を使った通信ができることを確認する
+
+docker run --rm -it --net mydockernet ubuntu /bin/bash
+
+apt update
+apt -y upgrade
+apt install -y iproute2 iputils-ping curl
+
+ping -c 4 web01
+
+curl http://web01/
+
+exit
+
+■p.195　コラム　Dockerネットワークがコンテナ名でアクセスできるようにする仕組み
+
+cat /etc/resolv.conf
+
+■p.196　Dockerネットワークの削除
+
+docker stop web01 web02
+docker rm web01 web02
+
+docker network rm mydockernet
+
+docker network ls
+
+
+

@@ -1,0 +1,176 @@
+■p.119　2つのhttpdコンテナを起動する
+
+docker run -dit --name web01 -p 8080:80 httpd:2.4
+
+docker run -dit --name web02 -p 8081:80 httpd:2.4
+
+docker ps
+
+■p.122　index.htmlをコピーする
+
+pushd /tmp
+
+docker cp /tmp/index.html web01:/usr/local/apache2/htdocs/
+
+
+docker exec -it web01 /bin/bash
+
+ls -al /usr/local/apache2/htdocs
+
+cat /usr/local/apache2/htdocs/index.html
+
+exit
+
+docker cp /tmp/index02.html web02:/usr/local/apache2/htdocs/index.html
+
+popd
+
+■p.126　コンテナを作り直す
+
+docker ps
+
+docker stop web01
+
+docker start web01
+
+docker stop web01
+docker rm web01
+
+docker ps -a
+
+docker run -dit --name web01 -p 8080:80 httpd:2.4
+
+docker ps
+
+docker exec -it web01 /bin/bash
+ls -al /usr/local/apache2/htdocs/
+
+cat /usr/local/apache2/htdocs/index.html
+
+exit
+
+■p.131　ボリュームのマウントを試す
+
+docker stop web01
+docker rm web01
+
+cd /home/ubuntu
+mkdir web01data
+
+docker run -dit --name web01 -v /home/ubuntu/web01data:/usr/local/apache2/htdocs -p 8080:80 httpd:2.4
+
+docker ps
+
+docker stop web01
+docker rm web01
+docker run -dit --name web01 -v /home/ubuntu/web01data:/usr/local/apache2/htdocs -p 8080:80 httpd:2.4
+
+docker ps
+
+■p.145　ボリュームを作成する
+
+docker volume create mysqlvolume
+
+docker volume ls
+
+
+■p.146　MySQL 5.7のコンテナを起動する
+
+docker run --name db01 -dit -v mysqlvolume:/var/lib/mysql -e MYSQL_ROOT_PASSWORD=mypassword mysql:5.7
+
+docker ps
+
+■p.147　データベースに書き込んだ内容が破棄されないことを確認する
+
+
+docker exec -it db01 /bin/bash
+
+mysql -p
+
+CREATE DATABASE exampledb;
+
+use exampledb;
+
+CREATE TABLE exampletable (id INT NOT NULL AUTO_INCREMENT, name VARCHAR(50), PRIMARY KEY(id));
+
+INSERT INTO exampletable (name) VALUES ('user01');
+
+INSERT INTO exampletable (name) VALUES ('user02');
+
+SELECT * FROM exampletable;
+
+\q
+
+exit
+
+docker stop db01
+
+docker rm db01
+
+docker ps -a
+
+docker run --name db01 -dit -e MYSQL_ROOT_PASSWORD=mypassword mysql:5.7
+
+docker exec -it db01 /bin/bash
+
+mysql -p
+
+use exampledb
+
+\q
+
+exit
+
+docker stop db01
+docker rm db01
+docker run --name db01 -dit -v mysqlvolume:/var/lib/mysql -e MYSQL_ROOT_PASSWORD=mypassword mysql:5.7
+
+docker exec -it db01 /bin/bash
+
+mysql -p
+
+use exampledb;
+
+SELECT * FROM exampletable;
+
+\q
+
+exit
+
+docker stop db01
+docker rm db01
+
+■p.154　5-4-1　ボリュームの場所
+
+docker volume inspect mysqlvolume
+
+
+■p.156　ボリュームをバックアップする
+
+docker ps -a
+
+docker run --rm -v mysqlvolume:/src -v "$PWD":/dest busybox tar czvf /dest/backup.tar.gz -C /src .
+
+ls -al
+
+tar tzvf backup.tar.gz
+
+■p.159　ボリュームを削除する
+
+docker volume rm mysqlvolume
+
+docker volume ls
+
+■p.160　ボリュームの作成とリストア
+
+docker volume create mysqlvolume
+
+docker run --rm -v mysqlvolume:/dest -v "$PWD":/src busybox tar xzf /src/backup.tar.gz -C /dest
+
+■p.162　--volumes-fromを使って対象を指定する
+
+docker stop db01
+
+docker run --rm --volumes-from db01 -v "$PWD":/dest busybox tar czf /dest/backup.tar.gz -C /var/lib/mysql .
+
+docker start db01

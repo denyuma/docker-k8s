@@ -1,0 +1,90 @@
+■p.202　Dockerネットワークを作成する
+
+docker network create wordpressnet
+
+docker network ls
+
+■p.202　ボリュームを作成する
+
+docker volume create wordpress_db_volume
+
+docker volume ls
+
+
+■p.204　MySQLコンテナを起動する
+
+docker run --name wordpress-db -dit -v wordpress_db_volume:/var/lib/mysql -e MYSQL_ROOT_PASSWORD=myrootpassword -e MYSQL_DATABASE=wordpressdb -e MYSQL_USER=wordpressuser -e MYSQL_PASSWORD=wordpresspass --net wordpressnet mysql:5.7
+
+docker ps
+
+■p.206　WordPressコンテナを起動する
+
+docker run --name wordpress-app -dit -p 8080:80 -e WORDPRESS_DB_HOST=wordpress-db -e WORDPRESS_DB_NAME=wordpressdb -e WORDPRESS_DB_USER=wordpressuser -e WORDPRESS_DB_PASSWORD=wordpresspass --net wordpressnet wordpress
+
+docker ps
+
+
+■p.207　うまく接続できないときは
+
+docker logs wordpress-app
+
+
+■p.211　後始末
+
+docker stop wordpress-db wordpress-app
+docker rm wordpress-db wordpress-app
+docker network rm wordpressnet
+docker volume rm wordpress_db_volume
+
+■p.214　Docker Composeをインストールする
+
+sudo apt install -y python3 python3-pip
+
+sudo pip3 install docker-compose
+
+docker-compose --version
+
+■p.215　作業用ディレクトリとdocker-compose.ymlの準備
+
+mkdir ~/wordpress
+cd ~/wordpress
+
+nano docker-compose.yml
+
+■p.219　Docker Composeでコンテナを起動する
+
+cd ~/wordpress
+
+docker-compose up -d
+
+docker-compose ps
+
+■p.222　コンテナを停止して破棄する
+
+docker-compose down
+
+docker-compose ps
+
+docker ps -a
+
+docker network ls
+
+docker volume ls
+
+■p.235　docker-composeでひとつずつコンテナを操作する
+
+docker-compose up -d
+
+docker-compose exec wordpress-app /bin/bash
+
+ls /var/www/html
+
+exit
+
+docker-compose stop wordpress-db
+
+docker-compose ps
+
+docker-compose start wordpress-db
+
+docker-compose down

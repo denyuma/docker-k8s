@@ -1,0 +1,62 @@
+# Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: my-service
+spec:
+  # ①-1 LoadBalabcerに変更
+  type: LoadBalancer
+#  sessionAffinity: ClientIP
+  ports:
+  # ①-2 ポート番号の変更
+  - port: 80
+    targetPort: 80
+    protocol: TCP
+  selector:
+    app: my-app
+
+---
+# StatefulSet
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: my-stateful
+spec:
+  replicas: 3
+  serviceName: my-service
+  selector:
+    matchLabels:
+      app: my-app
+  template:
+    metadata:
+      labels:
+        app: my-app
+    spec:
+      containers:
+      - name: my-container
+        # ②Dockerイメージ名の変更
+        image: ★自分のAWSID★.dkr.ecr.ap-northeast-1.amazonaws.com/myexample_ecr:latest
+        ports:
+        - containerPort: 80
+        volumeMounts:
+          # ③-2　ReadWriteMany設定していたマウントをとりやめ
+          # - name: my-volume-storage
+          #   mountPath: /var/data
+          - name: my-volume-session
+            mountPath: /var/lib/php/sessions
+            # ③-2
+            #      volumes:
+            #        - name: my-volume-storage
+            #          persistentVolumeClaim:
+            #            claimName: my-volume-claim
+  volumeClaimTemplates:
+  - metadata:
+      name: my-volume-session
+    spec:
+      accessModes:
+        - ReadWriteOnce
+      resources:
+        requests:
+          storage: 5Mi
+      # ③-1ストレージクラスの変更
+      storageClassName: gp2
