@@ -39,3 +39,5 @@ terraform.rc
 
 
 *.tar.gz
+
+**/*.tar
