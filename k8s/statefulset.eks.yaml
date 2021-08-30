@@ -1,17 +1,18 @@
+# Service
 apiVersion: v1
 kind: Service
 metadata:
   name: my-service
 spec:
   type: LoadBalancer
-  sessionAffinity: ClientIP
+#  sessionAffinity: ClientIP
   ports:
-  - name: http
-    port: 8080
+  # �@-2 �|�[�g�ԍ��̕ύX
+  - port: 80
     targetPort: 80
+    protocol: TCP
   selector:
     app: my-app
-
 
 ---
 # StatefulSet
@@ -32,18 +33,21 @@ spec:
     spec:
       containers:
       - name: my-container
-        image: denyuma/myexample:4.0
+        # �ADocker�C���[�W���̕ύX
+        image: 984787866832.dkr.ecr.ap-northeast-1.amazonaws.com/terraform_ecr:latest
         ports:
         - containerPort: 80
         volumeMounts:
-          - name: my-volume-storage
-            mountPath: /var/data
+          # �B-2�@ReadWriteMany�ݒ肵�Ă����}�E���g���Ƃ���
+          # - name: my-volume-storage
+          #   mountPath: /var/data
           - name: my-volume-session
             mountPath: /var/lib/php/sessions
-      volumes:
-        - name: my-volume-storage
-          persistentVolumeClaim:
-            claimName: my-volume-claim
+            # �B-2
+            #      volumes:
+            #        - name: my-volume-storage
+            #          persistentVolumeClaim:
+            #            claimName: my-volume-claim
   volumeClaimTemplates:
   - metadata:
       name: my-volume-session
@@ -53,3 +57,5 @@ spec:
       resources:
         requests:
           storage: 5Mi
+      # �B-1�X�g���[�W�N���X�̕ύX
+      storageClassName: gp2
