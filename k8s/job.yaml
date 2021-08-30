@@ -1,0 +1,23 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: my-job
+spec:
+  completions: 1
+  parallelism: 1
+  template:
+    spec:
+      containers:
+        - name: my-job
+          image: busybox
+          command: ["/bin/sh", "-c"]
+          args:
+            - echo 0 > /var/data/cnt.txt
+          volumeMounts:
+            - name: my-volume-storage
+              mountPath: /var/data
+      restartPolicy: Never
+      volumes:
+        - name: my-volume-storage
+          persistentVolumeClaim:
+            claimName: my-volume-claim
